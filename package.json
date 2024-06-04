@@ -9,15 +9,16 @@
   "dependencies": {
     "@solidjs/router": "^0.13.3",
     "@solidjs/start": "^1.0.1",
+    "@tanstack/solid-query": "^5.40.0",
     "autoprefixer": "^10.4.19",
-    "postcss": "^8.4.38",
-    "solid-js": "^1.8.17",
-    "tailwindcss": "^3.4.3",
-    "vinxi": "^0.3.11",
     "css": "^3.0.0",
     "lucide-solid": "^0.383.0",
+    "postcss": "^8.4.38",
     "prettier-plugin-tailwindcss": "^0.6.1",
-    "tailwind-scrollbar": "^3.1.0"
+    "solid-js": "^1.8.17",
+    "tailwind-scrollbar": "^3.1.0",
+    "tailwindcss": "^3.4.3",
+    "vinxi": "^0.3.11"
   },
   "engines": {
     "node": ">=18"
