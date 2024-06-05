@@ -109,7 +109,7 @@ export function WikiPage(props: WikiPageProps) {
       if (element.getAttribute("rel") !== "mw:WikiLink") {
         return (
           <a
-            class={"non-wiki-link " + className}
+            class={"non-wiki-link " + className ?? ""}
             onclick={(e) => e.preventDefault()}
           >
             {children}
@@ -120,7 +120,7 @@ export function WikiPage(props: WikiPageProps) {
 
       return (
         <a
-          class={styleLinks(title || "") + " " + className}
+          class={styleLinks(title || "") + " " + className ?? ""}
           onClick={() => {
             handleLinkClick(title);
           }}
@@ -150,9 +150,11 @@ export function WikiPage(props: WikiPageProps) {
       return;
     }
 
-    return Array.from(props.html.body.childNodes).map((node) =>
+    const nodes = Array.from(props.html.body.childNodes).map((node) =>
       transformNodeToElement(node),
     );
+
+    return nodes;
   };
 
   return (
@@ -161,7 +163,7 @@ export function WikiPage(props: WikiPageProps) {
         <Link rel="stylesheet" href="/wikipedia.css" />
       </MetaProvider>
       <div class="text-2xl font-bold" innerHTML={props.pageTitle} />
-      <Show when={renderedBody() !== null}>
+      <Show when={props.html !== null}>
         <div class="prose max-w-none">{renderedBody()}</div>
       </Show>
     </div>
