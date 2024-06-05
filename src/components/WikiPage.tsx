@@ -37,15 +37,11 @@ export function WikiPage(props: WikiPageProps) {
     return searchParamsArray().includes(linkTitle) ? "bg-blue-200" : "";
   };
 
-  const handleLinkClick = (
-    e: MouseEvent & { currentTarget: HTMLAnchorElement; target: Element },
-    title: string | null,
-  ) => {
-    e.preventDefault();
+  const handleLinkClick = (title: string | null) => {
     if (title === null) return;
 
     if (!searchParamsArray().includes(title)) {
-      console.log("searchParamsArray: ", searchParamsArray());
+      // console.log("searchParamsArray: ", searchParamsArray());
 
       setSearchParams({ page: [...searchParamsArray(), title].join(",") });
     }
@@ -72,13 +68,14 @@ export function WikiPage(props: WikiPageProps) {
 
     const element = node as HTMLElement;
     const tagName = element.tagName.toLowerCase();
-    const children = Array.from(element.childNodes).map((child) =>
-      transformNodeToElement(child),
-    );
 
     if (ignoredTags.has(tagName)) {
       return null;
     }
+
+    const children = Array.from(element.childNodes).map((child) =>
+      transformNodeToElement(child),
+    );
 
     // if (tagName === "style") {
     //   return (
@@ -88,11 +85,17 @@ export function WikiPage(props: WikiPageProps) {
     //   );
     // }
 
-    const className = element.getAttribute("class") || undefined;
-    const attributes = Array.from(element.attributes).reduce(
-      (acc, attr) => ({ ...acc, [attr.name]: attr.value }),
-      {},
-    );
+    // const className = element.getAttribute("class") || undefined;
+    // const attributes = Array.from(element.attributes).reduce(
+    //   (acc, attr) => ({ ...acc, [attr.name]: attr.value }),
+    //   {},
+    // );
+
+    const typeOf = element.getAttribute("typeof") || null;
+    const className = element.getAttribute("class") || null;
+    const style = element.getAttribute("style") || null;
+    const colspan = element.getAttribute("colspan") || null;
+    const src = tagName === "img" ? element.getAttribute("src") || null : null;
 
     // if (tagName === "script") {
     //   createScriptLoader({
@@ -105,29 +108,34 @@ export function WikiPage(props: WikiPageProps) {
     if (tagName === "a") {
       if (element.getAttribute("rel") !== "mw:WikiLink") {
         return (
-          <Anchor
-            className={() => "non-wiki-link " + className}
-            title={null}
-            handleLinkClick={(e) => e.preventDefault()}
+          <a
+            class={"non-wiki-link " + className}
+            onclick={(e) => e.preventDefault()}
           >
             {children}
-          </Anchor>
+          </a>
         );
       }
+      const title = element.getAttribute("title") || null;
 
       return (
-        <Anchor
-          className={() => styleLinks(attributes.title || "") + " " + className}
-          title={attributes.title}
-          handleLinkClick={handleLinkClick}
+        <a
+          class={styleLinks(title || "") + " " + className}
+          onClick={() => {
+            handleLinkClick(title);
+          }}
         >
           {children}
-        </Anchor>
+        </a>
       );
     }
 
     const props = {
-      ...attributes,
+      typeOf,
+      className,
+      style,
+      colspan,
+      src,
     };
 
     if (voidElements.has(tagName)) {
@@ -138,17 +146,14 @@ export function WikiPage(props: WikiPageProps) {
   };
 
   const renderedBody = () => {
-    if (!props.html || !props.html?.hasChildNodes()) {
-      // Display a loading state when props.html is an empty DOM
-      return <div>Loading...</div>;
+    if (!props.html) {
+      return;
     }
 
     return Array.from(props.html.body.childNodes).map((node) =>
       transformNodeToElement(node),
     );
   };
-
-  // console.log(renderedBody());
 
   return (
     <div class="w-full">
@@ -159,30 +164,6 @@ export function WikiPage(props: WikiPageProps) {
       <Show when={renderedBody() !== null}>
         <div class="prose max-w-none">{renderedBody()}</div>
       </Show>
-      {/* <Show when={props.html !== null}> */}
-      {/*   <div class="prose max-w-none" innerHTML={props.html?.innerHTML}></div> */}
-      {/* </Show> */}
     </div>
-  );
-}
-
-function Anchor({
-  className,
-  children,
-  title,
-  handleLinkClick,
-}: {
-  className: () => string;
-  handleLinkClick: (
-    e: MouseEvent & { currentTarget: HTMLAnchorElement; target: Element },
-    title: string | null,
-  ) => void;
-  children: JSX.Element;
-  title: string | null;
-}) {
-  return (
-    <a class={className()} href="#" onClick={(e) => handleLinkClick(e, title)}>
-      {children}
-    </a>
   );
 }

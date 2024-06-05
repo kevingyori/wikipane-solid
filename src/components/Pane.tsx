@@ -18,6 +18,18 @@ async function fetchPage(title: string) {
   }
 }
 
+const closePane = function closePane(
+  searchParamsArray: () => string[],
+  setSearchParams: (params: { page: string | null }) => void,
+  title: string,
+) {
+  if (searchParamsArray().length === 1) {
+    setSearchParams({ page: null });
+  }
+  const newParams = searchParamsArray().filter((p) => p !== title);
+  setSearchParams({ page: newParams.join(",") });
+};
+
 type PaneProps = {
   title: string;
   index: number;
@@ -47,18 +59,6 @@ export function Pane(props: PaneProps) {
     () => searchParams.page?.split(",") ?? [],
   );
 
-  const closePane = function closePane(
-    searchParamsArray: () => string[],
-    index: number,
-    title: string,
-  ) {
-    if (searchParamsArray().length === 1) {
-      setSearchParams({ page: null });
-    }
-    const newParams = searchParamsArray().filter((p) => p !== title);
-    setSearchParams({ page: newParams.join(",") });
-  };
-
   return (
     <div
       class="shadow-xl shadow-gray-300"
@@ -67,6 +67,7 @@ export function Pane(props: PaneProps) {
         left: props.index * 40 + "px",
         right:
           -650 + (searchParamsArray().length - props.index - 1) * 40 + "px",
+        display: searchParamsArray().includes(props.title) ? "block" : "none",
       }}
     >
       <div class="flex bg-white scrollbar-thin">
@@ -77,7 +78,7 @@ export function Pane(props: PaneProps) {
         >
           <button
             onClick={() =>
-              closePane(searchParamsArray, props.index, props.title)
+              closePane(searchParamsArray, setSearchParams, props.title)
             }
             class="p-2"
           >

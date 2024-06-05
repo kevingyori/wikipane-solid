@@ -8,14 +8,7 @@ export default function WikiPanes() {
 
   return (
     <>
-      <For
-        each={searchParamsArray()}
-        fallback={
-          <div>
-            <a href="/?page=hey">New page</a>
-          </div>
-        }
-      >
+      <For each={searchParamsArray()}>
         {(title, index) => <Pane title={title} index={index()} />}
       </For>
     </>

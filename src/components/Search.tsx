@@ -75,7 +75,6 @@ export function Search({
     }
     if (open() || isEmptyPage()) {
       if (e.key === "Enter") {
-        // TODO: handle empty search
         if (query() === "") return;
         if (title() === "") return;
         e.preventDefault();
