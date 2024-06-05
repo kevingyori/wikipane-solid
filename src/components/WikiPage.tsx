@@ -44,6 +44,7 @@ export function WikiPage(props: WikiPageProps) {
     if (title === null) return;
 
     if (!searchParamsArray().includes(title)) {
+      console.log("searchParamsArray: ", searchParamsArray());
       setSearchParams({ page: [...searchParamsArray(), title].join(",") });
     }
   };
@@ -73,7 +74,7 @@ export function WikiPage(props: WikiPageProps) {
       transformNodeToElement(child, idx),
     );
 
-    if (tagName === "link" || tagName === "meta") {
+    if (tagName === "link" || tagName === "meta" || tagName === "base") {
       return null;
     }
 
@@ -108,7 +109,7 @@ export function WikiPage(props: WikiPageProps) {
       if (element.getAttribute("rel") !== "mw:WikiLink") {
         return (
           <Anchor
-            className={"non-wiki-link " + className}
+            className={() => "non-wiki-link " + className}
             title={null}
             handleLinkClick={(e) => e.preventDefault()}
           >
@@ -119,7 +120,7 @@ export function WikiPage(props: WikiPageProps) {
 
       return (
         <Anchor
-          className={styleLinks(title || "") + " " + className}
+          className={() => styleLinks(title || "") + " " + className}
           title={title}
           handleLinkClick={handleLinkClick}
         >
@@ -145,21 +146,21 @@ export function WikiPage(props: WikiPageProps) {
       props.html || "",
       "text/html",
     );
-    console.log("html: ", document);
+    // console.log("html: ", document);
 
     return Array.from(document.childNodes).map((node, index) =>
       transformNodeToElement(node, index),
     );
   };
 
-  console.log(renderedBody());
+  // console.log(renderedBody());
 
   return (
     <div class="w-full">
       <MetaProvider>
         <Link rel="stylesheet" href="/wikipedia.css" />
       </MetaProvider>
-      <div class="text-2xl font-bold">{props.pageTitle}</div>
+      <div class="text-2xl font-bold" innerHTML={props.pageTitle} />
       <Show when={renderedBody() !== null}>
         <div class="prose max-w-none">{renderedBody()}</div>
       </Show>
@@ -185,7 +186,7 @@ function Anchor({
   title: string | null;
 }) {
   return (
-    <a class={className} href="#" onClick={(e) => handleLinkClick(e, title)}>
+    <a class={className()} href="#" onClick={(e) => handleLinkClick(e, title)}>
       {children}
     </a>
   );
