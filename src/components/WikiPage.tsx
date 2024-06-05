@@ -1,9 +1,9 @@
 import { useSearchParams } from "@solidjs/router";
-import { Link, MetaProvider, Style } from "@solidjs/meta";
-import { Show, createMemo, useTransition } from "solid-js";
+import { Link, MetaProvider } from "@solidjs/meta";
+import { JSX, Show, createMemo, useTransition } from "solid-js";
 import { Dynamic } from "solid-js/web";
-import { transformCss } from "~/utils/transformCss";
-import { createScriptLoader } from "@solid-primitives/script-loader";
+
+const ignoredTags = new Set(["link", "meta", "base", "style"]);
 
 const voidElements = new Set([
   "area",
@@ -57,7 +57,7 @@ export function WikiPage(props: WikiPageProps) {
     );
   };
 
-  const transformNodeToElement = (node: ChildNode, index: number) => {
+  const transformNodeToElement = (node: ChildNode) => {
     if (isWhitespaceTextNode(node)) {
       return null;
     }
@@ -72,42 +72,37 @@ export function WikiPage(props: WikiPageProps) {
 
     const element = node as HTMLElement;
     const tagName = element.tagName.toLowerCase();
-    const children = Array.from(element.childNodes).map((child, idx) =>
-      transformNodeToElement(child, idx),
+    const children = Array.from(element.childNodes).map((child) =>
+      transformNodeToElement(child),
     );
 
-    if (tagName === "link" || tagName === "meta" || tagName === "base") {
+    if (ignoredTags.has(tagName)) {
       return null;
     }
 
-    if (tagName === "style") {
-      return (
-        <MetaProvider>
-          <Style>{element.textContent}</Style>
-        </MetaProvider>
-      );
-    }
+    // if (tagName === "style") {
+    //   return (
+    //     <MetaProvider>
+    //       <Style>{element.textContent}</Style>
+    //     </MetaProvider>
+    //   );
+    // }
 
-    const typeOf = element.getAttribute("typeof") || null;
     const className = element.getAttribute("class") || undefined;
-    const style = element.getAttribute("style") || null;
-    const colspan = element.getAttribute("colspan") || null;
-    const src = tagName === "img" ? element.getAttribute("src") || null : null;
     const attributes = Array.from(element.attributes).reduce(
       (acc, attr) => ({ ...acc, [attr.name]: attr.value }),
       {},
     );
 
-    if (tagName === "script") {
-      createScriptLoader({
-        src: attributes.src ?? element.textContent,
-        ...attributes,
-      });
-      return null;
-    }
+    // if (tagName === "script") {
+    //   createScriptLoader({
+    //     src: attributes.src ?? element.textContent,
+    //     ...attributes,
+    //   });
+    //   return null;
+    // }
 
     if (tagName === "a") {
-      const title = element.getAttribute("title");
       if (element.getAttribute("rel") !== "mw:WikiLink") {
         return (
           <Anchor
@@ -122,8 +117,8 @@ export function WikiPage(props: WikiPageProps) {
 
       return (
         <Anchor
-          className={() => styleLinks(title || "") + " " + className}
-          title={title}
+          className={() => styleLinks(attributes.title || "") + " " + className}
+          title={attributes.title}
           handleLinkClick={handleLinkClick}
         >
           {children}
@@ -148,8 +143,8 @@ export function WikiPage(props: WikiPageProps) {
       return <div>Loading...</div>;
     }
 
-    return Array.from(props.html.body.childNodes).map((node, index) =>
-      transformNodeToElement(node, index),
+    return Array.from(props.html.body.childNodes).map((node) =>
+      transformNodeToElement(node),
     );
   };
 
@@ -177,12 +172,12 @@ function Anchor({
   title,
   handleLinkClick,
 }: {
-  className: string;
+  className: () => string;
   handleLinkClick: (
     e: MouseEvent & { currentTarget: HTMLAnchorElement; target: Element },
     title: string | null,
   ) => void;
-  children;
+  children: JSX.Element;
   title: string | null;
 }) {
   return (

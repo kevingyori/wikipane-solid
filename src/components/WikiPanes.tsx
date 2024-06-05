@@ -3,7 +3,7 @@ import { For, createMemo } from "solid-js";
 import { Pane } from "~/components/Pane";
 
 export default function WikiPanes() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const searchParamsArray = createMemo(() => searchParams.page?.split(","));
 
   return (
