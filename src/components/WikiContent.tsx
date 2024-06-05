@@ -1,32 +1,33 @@
 import { Globe } from "lucide-solid";
 import { WikiPage } from "./WikiPage";
-import { ErrorBoundary, Suspense } from "solid-js";
+import { ErrorBoundary, Match, Suspense, Switch } from "solid-js";
+import { CreateQueryResult } from "@tanstack/solid-query";
 
 export function WikiContent({
+  page,
+  pageTitle,
   html,
   title,
-  pageTitle,
 }: {
-  html: Document;
-  title: string;
+  page: CreateQueryResult<string, Error>;
   pageTitle: string;
+  html: () => Document;
+  title: string;
 }) {
   return (
-    <div class="scroll-y h-[calc(100vh-20px)] w-[650px] min-w-[650px] overflow-x-hidden overflow-y-scroll py-3 pr-3 scrollbar-thin">
-      <ErrorBoundary fallback={<div>Error</div>}>
-        <Suspense
-          fallback={
-            <>
-              <div class="text-2xl font-bold">{title}</div>
-              <Globe class="mx-auto mt-8 w-6 animate-spin" />
-            </>
-          }
-        >
-          <>
-            <WikiPage html={html} pageTitle={pageTitle} />
-          </>
-        </Suspense>
-      </ErrorBoundary>
-    </div>
+    <Switch>
+      <Match when={page.isPending}>
+        <>
+          <div class="text-2xl font-bold">{title}</div>
+          {/* <Globe class="mx-auto mt-8 w-6 animate-spin" /> */}
+        </>
+      </Match>
+      <Match when={page.isError}>
+        <span>Error: {page.error?.message}</span>
+      </Match>
+      <Match when={page.data}>
+        <WikiPage html={html} pageTitle={pageTitle} />
+      </Match>
+    </Switch>
   );
 }

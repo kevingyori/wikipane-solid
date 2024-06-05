@@ -1,6 +1,6 @@
 import { useSearchParams } from "@solidjs/router";
 import { Link, MetaProvider, Style } from "@solidjs/meta";
-import { Show, createMemo } from "solid-js";
+import { Show, createMemo, useTransition } from "solid-js";
 import { Dynamic } from "solid-js/web";
 import { transformCss } from "~/utils/transformCss";
 import { createScriptLoader } from "@solid-primitives/script-loader";
@@ -23,12 +23,13 @@ const voidElements = new Set([
 ]);
 
 type WikiPageProps = {
-  html: string | undefined;
+  html: Document | undefined;
   pageTitle: string;
 };
 
 export function WikiPage(props: WikiPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
+  const [, start] = useTransition();
   const searchParamsArray = createMemo(
     () => searchParams.page?.split(",") ?? [],
   );
@@ -45,6 +46,7 @@ export function WikiPage(props: WikiPageProps) {
 
     if (!searchParamsArray().includes(title)) {
       console.log("searchParamsArray: ", searchParamsArray());
+
       setSearchParams({ page: [...searchParamsArray(), title].join(",") });
     }
   };
@@ -141,14 +143,12 @@ export function WikiPage(props: WikiPageProps) {
   };
 
   const renderedBody = () => {
-    if (!props.html) return null;
-    const document = new DOMParser().parseFromString(
-      props.html || "",
-      "text/html",
-    );
-    // console.log("html: ", document);
+    if (!props.html || !props.html?.hasChildNodes()) {
+      // Display a loading state when props.html is an empty DOM
+      return <div>Loading...</div>;
+    }
 
-    return Array.from(document.childNodes).map((node, index) =>
+    return Array.from(props.html.childNodes).map((node, index) =>
       transformNodeToElement(node, index),
     );
   };
