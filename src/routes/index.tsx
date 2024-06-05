@@ -1,7 +1,5 @@
 import { createSignal } from "solid-js";
-import { clientOnly } from "@solidjs/start";
-
-const WikiPanes = clientOnly(() => import("~/components/WikiPanes"));
+import WikiPanes from "~/components/WikiPanes";
 
 export default function Home() {
   const [searchOpen, setSearchOpen] = createSignal(false);

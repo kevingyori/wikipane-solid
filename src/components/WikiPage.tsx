@@ -148,7 +148,7 @@ export function WikiPage(props: WikiPageProps) {
       return <div>Loading...</div>;
     }
 
-    return Array.from(props.html.childNodes).map((node, index) =>
+    return Array.from(props.html.body.childNodes).map((node, index) =>
       transformNodeToElement(node, index),
     );
   };

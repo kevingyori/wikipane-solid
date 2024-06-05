@@ -1,8 +1,9 @@
-import { Router } from "@solidjs/router";
-import { FileRoutes } from "@solidjs/start/router";
-import { Suspense } from "solid-js";
+import { Route, Router } from "@solidjs/router";
 import "./app.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/solid-query";
+import { clientOnly } from "@solidjs/start";
+
+const Home = clientOnly(() => import("./routes/index"));
 
 const queryClient = new QueryClient();
 
@@ -12,12 +13,12 @@ export default function App() {
       root={(props) => (
         <>
           <QueryClientProvider client={queryClient}>
-            <Suspense>{props.children}</Suspense>
+            {props.children}
           </QueryClientProvider>
         </>
       )}
     >
-      <FileRoutes />
+      <Route path="/" component={Home} />
     </Router>
   );
 }

@@ -1,5 +1,12 @@
 import { useSearchParams } from "@solidjs/router";
-import { Match, Show, Switch, createMemo, createResource } from "solid-js";
+import {
+  Match,
+  Show,
+  Switch,
+  createMemo,
+  createResource,
+  useTransition,
+} from "solid-js";
 import { WikiPage } from "./WikiPage";
 import { WikiTitle } from "./WikiTitle";
 import { createQuery } from "@tanstack/solid-query";
@@ -38,7 +45,7 @@ export function Pane(props: PaneProps) {
 
   const page = createQuery(() => ({
     queryKey: [props.title],
-    queryFn: () => mockFetchPage(props.title),
+    queryFn: () => fetchPage(props.title),
   }));
 
   const html = createMemo(() => {
@@ -57,19 +64,23 @@ export function Pane(props: PaneProps) {
     () => searchParams.page?.split(",") ?? [],
   );
 
+  const [, start] = useTransition();
+
   const closePane = function closePane(
     searchParamsArray: () => string[],
     index: number,
     title: string,
   ) {
     console.log("closePane", index, searchParamsArray());
-    if (searchParamsArray().length === 1) {
-      console.log("closePane", "last");
-      setSearchParams({ page: null });
-    }
-    console.log("closePane", "remove", title);
-    const newParams = searchParamsArray().filter((p) => p !== title);
-    setSearchParams({ page: newParams.join(",") });
+    start(() => {
+      if (searchParamsArray().length === 1) {
+        console.log("closePane", "last");
+        setSearchParams({ page: null });
+      }
+      console.log("closePane", "remove", title);
+      const newParams = searchParamsArray().filter((p) => p !== title);
+      setSearchParams({ page: newParams.join(",") });
+    });
   };
 
   const left = createMemo(() => props.index * 40);
