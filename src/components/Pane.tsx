@@ -1,5 +1,14 @@
 import { useSearchParams } from "@solidjs/router";
-import { Match, Show, Switch, createMemo } from "solid-js";
+import { Motion } from "solid-motionone";
+import {
+  Match,
+  Setter,
+  Show,
+  Switch,
+  createEffect,
+  createMemo,
+  createSignal,
+} from "solid-js";
 import { WikiPage } from "./WikiPage";
 import { WikiTitle } from "./WikiTitle";
 import { createQuery } from "@tanstack/solid-query";
@@ -33,6 +42,8 @@ const closePane = function closePane(
 type PaneProps = {
   title: string;
   index: number;
+  animatePane: string;
+  setAnimatePane: Setter<string>;
 };
 
 export function Pane(props: PaneProps) {
@@ -59,9 +70,24 @@ export function Pane(props: PaneProps) {
     () => searchParams.page?.split(",") ?? [],
   );
 
+  const [paneRef, setPaneRef] = createSignal<HTMLElement | null>(null);
+
+  createEffect(() => {
+    // scroll element into view
+    if (props.animatePane === props.title) {
+      paneRef()?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  });
+
   return (
-    <div
+    <Motion
+      ref={setPaneRef}
       class="shadow-xl shadow-gray-300"
+      animate={{
+        opacity: props.animatePane === props.title ? [0, 1] : "",
+        scale: props.animatePane === props.title ? [0.9, 1] : "",
+      }}
+      transition={{ duration: 0.2, easing: "ease-in-out" }}
       style={{
         position: "sticky",
         left: props.index * 40 + "px",
@@ -107,11 +133,17 @@ export function Pane(props: PaneProps) {
               <span>Error: {page.error?.message}</span>
             </Match>
             <Match when={page.data}>
-              <WikiPage html={html()} pageTitle={pageTitle()} />
+              <WikiPage
+                html={html()}
+                pageTitle={pageTitle()}
+                title={() => props.title}
+                animatePane={props.animatePane}
+                setAnimatePane={props.setAnimatePane}
+              />
             </Match>
           </Switch>
         </div>
       </div>
-    </div>
+    </Motion>
   );
 }

@@ -1,7 +1,17 @@
 import { useSearchParams } from "@solidjs/router";
 import { Link, MetaProvider } from "@solidjs/meta";
-import { JSX, Show, createMemo, useTransition } from "solid-js";
+import {
+  JSX,
+  Setter,
+  Show,
+  Suspense,
+  createMemo,
+  createResource,
+  useTransition,
+} from "solid-js";
 import { Dynamic } from "solid-js/web";
+import { Motion } from "solid-motionone";
+import { Globe } from "lucide-solid";
 
 const ignoredTags = new Set(["link", "meta", "base", "style"]);
 
@@ -25,6 +35,9 @@ const voidElements = new Set([
 type WikiPageProps = {
   html: Document | undefined;
   pageTitle: string;
+  title: () => string;
+  animatePane: string;
+  setAnimatePane: Setter<string>;
 };
 
 export function WikiPage(props: WikiPageProps) {
@@ -33,17 +46,17 @@ export function WikiPage(props: WikiPageProps) {
   const searchParamsArray = createMemo(
     () => searchParams.page?.split(",") ?? [],
   );
-  const styleLinks = (linkTitle: string) => {
-    return searchParamsArray().includes(linkTitle) ? "bg-blue-200" : "";
-  };
 
   const handleLinkClick = (title: string | null) => {
     if (title === null) return;
 
     if (!searchParamsArray().includes(title)) {
-      // console.log("searchParamsArray: ", searchParamsArray());
+      props.setAnimatePane(title);
+      const currentPageIndex = searchParamsArray().indexOf(props.title());
+      const newParams = [...searchParamsArray()];
+      newParams.splice(currentPageIndex + 1, 0, title);
 
-      setSearchParams({ page: [...searchParamsArray(), title].join(",") });
+      setSearchParams({ page: newParams.join(",") });
     }
   };
 
@@ -109,7 +122,7 @@ export function WikiPage(props: WikiPageProps) {
       if (element.getAttribute("rel") !== "mw:WikiLink") {
         return (
           <a
-            class={"non-wiki-link " + className ?? ""}
+            class={"non-wiki-link " + className}
             onclick={(e) => e.preventDefault()}
           >
             {children}
@@ -117,10 +130,24 @@ export function WikiPage(props: WikiPageProps) {
         );
       }
       const title = element.getAttribute("title") || null;
+      if (title === null) {
+        return (
+          <a
+            class={"non-wiki-link " + className}
+            onclick={(e) => e.preventDefault()}
+          >
+            {children}
+          </a>
+        );
+      }
 
       return (
         <a
-          class={styleLinks(title || "") + " " + className ?? ""}
+          class={
+            searchParamsArray().includes(title)
+              ? "bg-blue-200"
+              : "" + " " + className
+          }
           onClick={() => {
             handleLinkClick(title);
           }}
@@ -157,14 +184,26 @@ export function WikiPage(props: WikiPageProps) {
     return nodes;
   };
 
+  const [renderedResource] = createResource(async () => {
+    // delay rendering until the animation is complete
+    setTimeout(() => {}, 300);
+    return renderedBody();
+  });
+
   return (
     <div class="w-full">
-      <MetaProvider>
-        <Link rel="stylesheet" href="/wikipedia.css" />
-      </MetaProvider>
       <div class="text-2xl font-bold" innerHTML={props.pageTitle} />
       <Show when={props.html !== null}>
-        <div class="prose max-w-none">{renderedBody()}</div>
+        <Suspense>
+          <Motion
+            class="prose max-w-none"
+            animate={{ opacity: [0, 1] }}
+            transition={{ duration: 0.2, easing: "ease-in-out", delay: 0.4 }}
+          >
+            {/* {renderedBody()} */}
+            {renderedResource()}
+          </Motion>
+        </Suspense>
       </Show>
     </div>
   );
