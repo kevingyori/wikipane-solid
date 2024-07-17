@@ -191,7 +191,7 @@ export function WikiPage(props: WikiPageProps) {
   });
 
   return (
-    <div class="w-full">
+    <div class="w-full h-full">
       <div class="text-2xl font-bold" innerHTML={props.pageTitle} />
       <Show when={props.html !== null}>
         <Suspense>

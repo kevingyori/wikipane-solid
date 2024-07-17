@@ -96,7 +96,7 @@ export function Pane(props: PaneProps) {
         display: searchParamsArray().includes(props.title) ? "block" : "none",
       }}
     >
-      <div class="flex bg-white scrollbar-thin">
+      <div class="flex bg-white scrollbar-thin h-full">
         {/* Sidebar */}
         <div
           class="group sticky w-10 min-w-10 cursor-vertical-text text-gray-700"
@@ -121,7 +121,7 @@ export function Pane(props: PaneProps) {
           </Show>
         </div>
         {/* Content */}
-        <div class="scroll-y h-[calc(100vh-20px)] w-[650px] min-w-[650px] overflow-x-hidden overflow-y-scroll py-3 pr-3 scrollbar-thin">
+        <div class="scroll-y h-full w-[650px] min-w-[650px] overflow-x-hidden overflow-y-scroll py-3 pr-3 scrollbar-thin">
           <Switch>
             <Match when={page.isPending}>
               <>
